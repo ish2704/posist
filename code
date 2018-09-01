@@ -1,0 +1,117 @@
+package Posist;
+
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.security.Key;
+import javax.crypto.Cipher;
+import sun.misc.BASE64Encoder;
+import sun.misc.BASE64Decoder;
+import javax.crypto.spec.SecretKeySpec;
+
+import July12.GenericTree.Node;
+
+public class Genesis {
+	public class Node {
+		int nodeNumber;
+		String nodeId;
+		String referenceNodeId;
+		String childReferenceNodeId;
+		String genesisReferenceNodeId;
+		String HashValue;
+		String[] data;
+		String ownerId;
+		double value;
+		String ownerName;
+		HashSet<String> s1 = new HashSet<String>();
+
+		ArrayList<Node> children = new ArrayList<>(); // Each node can have
+														// multiple children
+
+		public Node(String[] arr) // Node of the tree
+		{
+			ownerId = arr[0];
+			value = Double.parseDouble(arr[1]);
+			ownerName = arr[2];
+			s1.add(ownerId);
+			s1.add(arr[1]);
+			s1.add(arr[2]);
+		}
+	}
+
+	private static final String ALGO = null;
+
+	Node genesis; // Summary
+
+	public Genesis(String[][] arr) {
+		Node node = new Node(arr[0]);
+		LinkedList<Node> stack = new LinkedList<>();
+		stack.addFirst(node);
+		genesis = node;
+		for (int i = 1; i < arr.length - 1; i++) {
+			Node n = new Node(arr[i]);
+			if (arr[i] != null) {
+				stack.addFirst(n);
+			} else {
+				Node rem = stack.removeFirst();
+				Node top = stack.getFirst();
+				top.children.add(rem);
+			}
+		}
+	}
+
+	public int height() // longest chain of genesis node
+	{
+		return heightHelper(genesis);
+	}
+
+	private int heightHelper(Node node) {
+		int maxh = -1; // -1 for edges and and 0 for nodes
+		for (Node child : node.children) {
+			if (heightHelper(child) > maxh) {
+				maxh = heightHelper(child);
+			}
+		}
+		return maxh + 1;
+	}
+
+	public int height1(Node node) // longest chain from a particular node
+	{
+		return heightHelper1(node);
+	}
+
+	private int heightHelper1(Node node) {
+		int maxh = -1; // -1 for edges and and 0 for nodes
+		for (Node child : node.children) {
+			if (heightHelper(child) > maxh) {
+				maxh = heightHelper(child);
+			}
+		}
+		return maxh + 1;
+	}
+
+	public static String encrypt(String data) throws Exception {
+		Key key = generateKey();
+		Cipher c = Cipher.getInstance(ALGO);
+		c.init(Cipher.ENCRYPT_MODE, key);
+		byte[] encVal = c.doFinal(data.getBytes());
+		return new BASE64Encoder().encode(encVal);
+
+	}
+
+	public static String decrypt(String encryptedData) throws Exception {
+		Key key = generateKey();
+		Cipher c = Cipher.getInstance(ALGO);
+		c.init(Cipher.DECRYPT_MODE, key);
+		byte[] decordedValue = new BASE64Decoder().decodeBuffer(encryptedData);
+		byte[] decValue = c.doFinal(decordedValue);
+		return new String(decValue);
+	}
+
+	private static Key generateKey() throws Exception {
+		byte[] keyValue;
+		return new SecretKeySpec(keyValue, ALGO);
+	}
+
+}
